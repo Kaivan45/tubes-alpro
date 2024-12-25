@@ -9,7 +9,7 @@ import (
 type User struct {
 	Username string
 	Password string
-	Role     string // "pasien" atau "dokter"
+	Role     string
 }
 
 // Struct untuk pertanyaan
@@ -107,8 +107,6 @@ func postingPertanyaan() {
 	fmt.Println("Pertanyaan berhasil diposting!")
 }
 
-
-
 func main() {
 	var pil int
 	for {
@@ -118,7 +116,6 @@ func main() {
 		fmt.Println("1. Registrasi")
 		fmt.Println("2. Login")
 		fmt.Println("3. Lihat Forum")
-		// Menu ke-4 hanya tampil jika pengguna adalah pasien yang sudah login
 		if currentUser != nil && currentUser.Role == "pasien" {
 			fmt.Println("4. Posting Pertanyaan")
 		}
