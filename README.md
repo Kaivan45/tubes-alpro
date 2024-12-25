@@ -1,4 +1,4 @@
-# Tugas Beasr ALPRO
+# Tugas Beasr Alpro
 
 Nama Kelompok
 - Muhammad Raffi - 231110211
