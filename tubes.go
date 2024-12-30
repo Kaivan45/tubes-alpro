@@ -142,6 +142,8 @@ func main() {
 			} else {
 				fmt.Println("Menu ini hanya tersedia untuk pasien yang sudah login.")
 			}
+		case 5:
+
 		case 0:
 			fmt.Println("Terima kasih telah menggunakan aplikasi!")
 			return
