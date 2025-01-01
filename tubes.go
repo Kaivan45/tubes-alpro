@@ -217,7 +217,19 @@ func beriTanggapan() {
 	tanggapanUser = strings.TrimSpace(tanggapanUser)
 
 	tanggapanFormatted := fmt.Sprintf("%s (%s): %s", currentUser.Username, currentUser.Role, tanggapanUser)
-	forum[id-1].Tanggapan = append(forum[id-1].Tanggapan, tanggapanFormatted)
+
+	// kapasitas maksimal untuk tanggapan
+	maxTanggapan := 10
+
+	// Cek apakah masih ada ruang untuk tanggapan baru
+	if len(forum[id-1].Tanggapan) >= maxTanggapan {
+		fmt.Println("Tanggapan tidak dapat ditambahkan, ruang sudah penuh.")
+		return
+	}
+
+	// Mengisi tanggapan pada indeks yang sesuai
+	tanggapanIndex := len(forum[id-1].Tanggapan)
+	forum[id-1].Tanggapan[tanggapanIndex] = tanggapanFormatted
 	fmt.Println("Tanggapan berhasil ditambahkan!")
 }
 
