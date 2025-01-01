@@ -94,17 +94,17 @@ func lihatForum() {
 	}
 
 	// Memilih algoritma pengurutan (Insertion Sort atau Selection Sort)
-	var sortChoice int
+	var pil int
 	fmt.Println("Pilih metode pengurutan berdasarkan tag:")
 	fmt.Println("1. Ascending (Insertion Sort)")
 	fmt.Println("2. Descending (Selection Sort)")
 	fmt.Print("Masukkan pilihan Anda: ")
-	fmt.Scan(&sortChoice)
+	fmt.Scan(&pil)
 
 	// Urutkan menggunakan metode yang dipilih
-	if sortChoice == 1 {
+	if pil == 1 {
 		insertionSortTag()
-	} else if sortChoice == 2 {
+	} else if pil == 2 {
 		selectionSortTagDescending()
 	} else {
 		fmt.Println("Pilihan tidak valid. Menampilkan forum tanpa pengurutan.")
@@ -137,20 +137,28 @@ func postingPertanyaan() {
 		return
 	}
 
-	reader := bufio.NewReader(os.Stdin)
+	tanyaReader := bufio.NewReader(os.Stdin)
 	fmt.Print("Masukkan pertanyaan Anda (akhiri dengan enter): ")
-	isi, _ := reader.ReadString('\n')
-	isi = strings.TrimSpace(isi)
+	isiPertanyaan, errPertanyaan := tanyaReader.ReadString('\n')
+	if errPertanyaan != nil {
+		fmt.Println("Terjadi kesalahan input pertanyaan.")
+		return
+	}
+	isiPertanyaan = strings.TrimSpace(isiPertanyaan)
 
 	fmt.Print("Masukkan tag: ")
-	tagInput, _ := reader.ReadString('\n')
+	tagInput, errTags := tanyaReader.ReadString('\n')
+	if errTags != nil {
+		fmt.Println("Terjadi kesalahan input tag.")
+		return
+	}
 	tagInput = strings.TrimSpace(tagInput)
 
 	tags := strings.Split(tagInput, ",")
 	pertanyaan := Pertanyaan{
 		ID:        forumCount + 1,
 		Penanya:   currentUser.Username,
-		Isi:       isi,
+		Isi:       isiPertanyaan,
 		Tag:       tags,
 		Tanggapan: []string{},
 	}
@@ -185,17 +193,42 @@ func beriTanggapan() {
 	}
 
 	// Input tanggapan menggunakan bufio.Reader agar bisa menangani spasi
-	reader := bufio.NewReader(os.Stdin)
+	tanggapanReader := bufio.NewReader(os.Stdin)
 	fmt.Print("Masukkan tanggapan Anda: ")
-	tanggapan, _ := reader.ReadString('\n')
-	tanggapan = strings.TrimSpace(tanggapan) // Remove the trailing newline and extra spaces
+	tanggapanUser, errInput := tanggapanReader.ReadString('\n')
+	if errInput != nil {
+		fmt.Println("Kesalahan pembacaan input tanggapan.")
+		return
+	}
+	tanggapanUser = strings.TrimSpace(tanggapanUser)
 
-	// Format tanggapan dengan identitas pengguna
-	tanggapanFormatted := fmt.Sprintf("%s (%s): %s", currentUser.Username, currentUser.Role, tanggapan)
-
-	// Tambahkan tanggapan ke pertanyaan yang dipilih
+	tanggapanFormatted := fmt.Sprintf("%s (%s): %s", currentUser.Username, currentUser.Role, tanggapanUser)
 	forum[id-1].Tanggapan = append(forum[id-1].Tanggapan, tanggapanFormatted)
 	fmt.Println("Tanggapan berhasil ditambahkan!")
+}
+
+func cariPertanyaan(){
+	var pil int
+	fmt.Println("Pilih metode pencarian berdasarkan tag:")
+	fmt.Println("1. Squential")
+	fmt.Println("2. Binary")
+	fmt.Print("Masukkan pilihan Anda: ")
+	fmt.Scan(&pil)
+
+	// Urutkan menggunakan metode yang dipilih
+	if pil == 1 {
+		var tag string
+		fmt.Print("Masukkan tag yang ingin dicari: ")
+		fmt.Scan(&tag)
+		cariPertanyaanSequential(tag)
+	} else if pil == 2 {
+		var tag string
+		fmt.Print("Masukkan tag yang ingin dicari: ")
+		fmt.Scan(&tag)
+		cariPertanyaanBinary(tag)
+	} else {
+		fmt.Println("Pilihan tidak valid. Menampilkan forum tanpa pencarian.")
+	}
 }
 
 func cariPertanyaanSequential(tag string) {
@@ -220,6 +253,44 @@ func cariPertanyaanSequential(tag string) {
 			found = true
 		}
 		index++
+	}
+
+	if !found {
+		fmt.Println("Tidak ada pertanyaan dengan tag tersebut.")
+	}
+}
+
+func cariPertanyaanBinary(tag string) {
+	// Urutkan data
+	insertionSortTag()
+
+	low := 0
+	high := forumCount - 1
+	found := false
+
+	fmt.Println("Hasil Pencarian Binary:")
+
+	// Ubah tag menjadi huruf kecil untuk pencarian yang case-insensitive
+	searchTag := strings.ToLower(tag)
+
+	// Proses pencarian binary
+	for low <= high {
+		mid := (low + high) / 2
+		// Ambil tag yang ada dalam pertanyaan
+		forumTag := strings.ToLower(strings.Join(forum[mid].Tag, " ")) // Gabungkan semua tag menjadi satu string
+
+		// Cek apakah tag mengandung searchTag
+		if strings.Contains(forumTag, searchTag) {
+			// Jika ditemukan, tampilkan data
+			fmt.Printf("ID: %d | Penanya: %s\nPertanyaan: %s\nTag: %s\n",
+				forum[mid].ID, forum[mid].Penanya, forum[mid].Isi, strings.Join(forum[mid].Tag, ", "))
+			found = true
+			break
+		} else if forumTag < searchTag {
+			low = mid + 1
+		} else {
+			high = mid - 1
+		}
 	}
 
 	if !found {
@@ -328,10 +399,7 @@ func main() {
 		case currentUser != nil && pil == 4:
 			beriTanggapan()
 		case currentUser != nil && pil == 5:
-			var tag string
-			fmt.Print("Masukkan tag yang ingin dicari: ")
-			fmt.Scan(&tag)
-			cariPertanyaanSequential(tag)
+			cariPertanyaan()
 		case currentUser == nil && pil == 0:
 			fmt.Println("Terima kasih telah menggunakan aplikasi!")
 			return
