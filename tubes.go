@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"strings"
 	"bufio"
+	"fmt"
 	"os"
+	"strings"
 )
 
 // Maksimum ukuran array
@@ -137,24 +137,27 @@ func postingPertanyaan() {
 		return
 	}
 
-	tanyaReader := bufio.NewReader(os.Stdin)
 	fmt.Print("Masukkan pertanyaan Anda (akhiri dengan enter): ")
+	tanyaReader := bufio.NewReader(os.Stdin)
 	isiPertanyaan, errPertanyaan := tanyaReader.ReadString('\n')
 	if errPertanyaan != nil {
 		fmt.Println("Terjadi kesalahan input pertanyaan.")
 		return
 	}
 	isiPertanyaan = strings.TrimSpace(isiPertanyaan)
-
-	fmt.Print("Masukkan tag: ")
-	tagInput, errTags := tanyaReader.ReadString('\n')
-	if errTags != nil {
-		fmt.Println("Terjadi kesalahan input tag.")
+	if isiPertanyaan == "" {
+		fmt.Println("Pertanyaan tidak boleh kosong.")
 		return
 	}
+	isiPertanyaan = strings.TrimSpace(isiPertanyaan)
+
+	var tagInput string
+	fmt.Print("Masukkan tag: ")
+	fmt.Scan(&tagInput)
+
 	tagInput = strings.TrimSpace(tagInput)
 
-	tags := strings.Split(tagInput, ",")
+	tags := []string{tagInput}
 	pertanyaan := Pertanyaan{
 		ID:        forumCount + 1,
 		Penanya:   currentUser.Username,
@@ -162,6 +165,7 @@ func postingPertanyaan() {
 		Tag:       tags,
 		Tanggapan: []string{},
 	}
+
 	forum[forumCount] = pertanyaan
 	forumCount++
 	fmt.Println("Pertanyaan berhasil diposting!")
@@ -178,8 +182,18 @@ func beriTanggapan() {
 		return
 	}
 
-	// Tampilkan daftar pertanyaan
-	lihatForum()
+	fmt.Println("Daftar Pertanyaan:")
+	for i := 0; i < forumCount; i++ {
+		fmt.Printf("ID: %d | Penanya: %s\nPertanyaan: %s\nTag: %s\n",
+			forum[i].ID, forum[i].Penanya, forum[i].Isi, strings.Join(forum[i].Tag, ", "))
+		if len(forum[i].Tanggapan) > 0 {
+			fmt.Println("Tanggapan:")
+			for j := 0; j < len(forum[i].Tanggapan); j++ {
+				fmt.Printf("- %s\n", forum[i].Tanggapan[j])
+			}
+		}
+		fmt.Println("-----------------------------")
+	} // Tampilkan daftar pertanyaan
 
 	// Pilih pertanyaan untuk ditanggapi
 	var id int
@@ -207,7 +221,7 @@ func beriTanggapan() {
 	fmt.Println("Tanggapan berhasil ditambahkan!")
 }
 
-func cariPertanyaan(){
+func cariPertanyaan() {
 	var pil int
 	fmt.Println("Pilih metode pencarian berdasarkan tag:")
 	fmt.Println("1. Squential")
