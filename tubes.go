@@ -227,7 +227,7 @@ func cariPertanyaan(){
 		fmt.Scan(&tag)
 		cariPertanyaanBinary(tag)
 	} else {
-		fmt.Println("Pilihan tidak valid. Menampilkan forum tanpa pencarian.")
+		fmt.Println("Pilihan tidak valid")
 	}
 }
 
