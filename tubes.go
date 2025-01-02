@@ -7,18 +7,18 @@ import (
 	"strings"
 )
 
-// Maksimum ukuran array
+// Deklarasi Array tetap dengan kapasitasi 100
 const maxUsers = 100
 const maxForum = 100
 
-// Struct untuk pengguna
+// Deklarasi Struct untuk menyimpan informasi user
 type User struct {
 	Username string
 	Password string
 	Role     string
 }
 
-// Struct untuk pertanyaan
+// Deklarasi Struct untuk menyimpan pertanyaan
 type Pertanyaan struct {
 	ID        int
 	Penanya   string
@@ -43,19 +43,19 @@ func registrasi() {
 	fmt.Print("Masukkan role (pasien/dokter): ")
 	fmt.Scan(&role)
 
-	// Validasi role
+	// validasi role pasien dan dokter
 	if role != "pasien" && role != "dokter" {
 		fmt.Println("Role tidak valid, hanya bisa pasien atau dokter.")
 		return
 	}
 
-	// Periksa apakah masih ada ruang di array
+	// Meriksa ruang di Array
 	if userCount >= maxUsers {
 		fmt.Println("Registrasi gagal. Kapasitas pengguna penuh.")
 		return
 	}
 
-	// Simpan user baru
+	// Menyimpan user baru ke Array
 	users[userCount] = User{Username: username, Password: password, Role: role}
 	userCount++
 	fmt.Println("Registrasi berhasil!")
@@ -68,6 +68,7 @@ func login() {
 	fmt.Print("Masukkan password: ")
 	fmt.Scan(&password)
 
+	// Mencari user dengan username dan password yang sesuai
 	for i := 0; i < userCount; i++ {
 		if users[i].Username == username && users[i].Password == password {
 			currentUser = &users[i]
@@ -113,8 +114,8 @@ func lihatForum() {
 	// Tampilkan daftar pertanyaan yang sudah diurutkan
 	fmt.Println("Daftar Pertanyaan:")
 	for i := 0; i < forumCount; i++ {
-		fmt.Printf("ID: %d | Penanya: %s\nPertanyaan: %s\nTag: %s\n",
-			forum[i].ID, forum[i].Penanya, forum[i].Isi, strings.Join(forum[i].Tag, ", "))
+		fmt.Printf("Urutan: %d | Penanya: %s\nPertanyaan: %s\nTag: %s\n",
+			i+1, forum[i].Penanya, forum[i].Isi, strings.Join(forum[i].Tag, ", "))
 		if len(forum[i].Tanggapan) > 0 {
 			fmt.Println("Tanggapan:")
 			for j := 0; j < len(forum[i].Tanggapan); j++ {
@@ -123,7 +124,6 @@ func lihatForum() {
 		}
 		fmt.Println("-----------------------------")
 	}
-
 }
 
 func postingPertanyaan() {
@@ -137,8 +137,9 @@ func postingPertanyaan() {
 		return
 	}
 
-	fmt.Print("Masukkan pertanyaan Anda (akhiri dengan enter): ")
 	tanyaReader := bufio.NewReader(os.Stdin)
+
+	fmt.Print("Masukkan pertanyaan Anda (akhiri dengan enter): ")
 	isiPertanyaan, errPertanyaan := tanyaReader.ReadString('\n')
 	if errPertanyaan != nil {
 		fmt.Println("Terjadi kesalahan input pertanyaan.")
@@ -151,19 +152,25 @@ func postingPertanyaan() {
 	}
 	isiPertanyaan = strings.TrimSpace(isiPertanyaan)
 
-	var tagInput string
 	fmt.Print("Masukkan tag: ")
-	fmt.Scan(&tagInput)
-
+	tagInput, errTags := tanyaReader.ReadString('\n')
+	if errTags != nil {
+		fmt.Println("Terjadi kesalahan input tag.")
+		return
+	}
 	tagInput = strings.TrimSpace(tagInput)
 
-	tags := []string{tagInput}
+	tags := strings.Split(tagInput, ",")
+
+	maxTanggapan := 100
+	tanggapan := make([]string, 0, maxTanggapan)
+
 	pertanyaan := Pertanyaan{
 		ID:        forumCount + 1,
 		Penanya:   currentUser.Username,
 		Isi:       isiPertanyaan,
 		Tag:       tags,
-		Tanggapan: []string{},
+		Tanggapan: tanggapan,
 	}
 
 	forum[forumCount] = pertanyaan
@@ -184,8 +191,8 @@ func beriTanggapan() {
 
 	fmt.Println("Daftar Pertanyaan:")
 	for i := 0; i < forumCount; i++ {
-		fmt.Printf("ID: %d | Penanya: %s\nPertanyaan: %s\nTag: %s\n",
-			forum[i].ID, forum[i].Penanya, forum[i].Isi, strings.Join(forum[i].Tag, ", "))
+		fmt.Printf("Urutan: %d | Penanya: %s\nPertanyaan: %s\nTag: %s\n",
+			i+1, forum[i].Penanya, forum[i].Isi, strings.Join(forum[i].Tag, ", "))
 		if len(forum[i].Tanggapan) > 0 {
 			fmt.Println("Tanggapan:")
 			for j := 0; j < len(forum[i].Tanggapan); j++ {
@@ -193,20 +200,17 @@ func beriTanggapan() {
 			}
 		}
 		fmt.Println("-----------------------------")
-	} // Tampilkan daftar pertanyaan
+	}
 
-	// Pilih pertanyaan untuk ditanggapi
-	var id int
-	fmt.Print("Masukkan ID pertanyaan yang ingin Anda tanggapi: ")
-	fmt.Scan(&id)
+	var urutan int
+	fmt.Print("Masukkan urutan pertanyaan yang ingin Anda tanggapi: ")
+	fmt.Scan(&urutan)
 
-	// Validasi ID pertanyaan
-	if id < 1 || id > forumCount {
-		fmt.Println("ID pertanyaan tidak valid.")
+	if urutan < 1 || urutan > forumCount {
+		fmt.Println("Urutan pertanyaan tidak valid.")
 		return
 	}
 
-	// Input tanggapan menggunakan bufio.Reader agar bisa menangani spasi
 	tanggapanReader := bufio.NewReader(os.Stdin)
 	fmt.Print("Masukkan tanggapan Anda: ")
 	tanggapanUser, errInput := tanggapanReader.ReadString('\n')
@@ -218,19 +222,37 @@ func beriTanggapan() {
 
 	tanggapanFormatted := fmt.Sprintf("%s (%s): %s", currentUser.Username, currentUser.Role, tanggapanUser)
 
-	// kapasitas maksimal untuk tanggapan
-	maxTanggapan := 10
+	// Tentukan kapasitas maksimum untuk tanggapan
+	const maxTanggapan = 50
 
-	// Cek apakah masih ada ruang untuk tanggapan baru
-	if len(forum[id-1].Tanggapan) >= maxTanggapan {
+	// Jika ruang masih tersedia di array Tanggapan, tambahkan tanggapan
+	if len(forum[urutan-1].Tanggapan) >= maxTanggapan {
 		fmt.Println("Tanggapan tidak dapat ditambahkan, ruang sudah penuh.")
 		return
 	}
 
-	// Mengisi tanggapan pada indeks yang sesuai
-	tanggapanIndex := len(forum[id-1].Tanggapan)
-	forum[id-1].Tanggapan[tanggapanIndex] = tanggapanFormatted
-	fmt.Println("Tanggapan berhasil ditambahkan!")
+	// Array statis untuk menyimpan tanggapan, dengan kapasitas tetap
+	var tanggapanArray [maxTanggapan]string
+
+	// Copy tanggapan yang ada ke array statis
+	copy(tanggapanArray[:], forum[urutan-1].Tanggapan)
+
+	// Tambahkan tanggapan pada posisi kosong di array tanpa menggunakan break
+	added := false
+	for i := 0; i < maxTanggapan; i++ {
+		if tanggapanArray[i] == "" { // Menemukan posisi kosong
+			tanggapanArray[i] = tanggapanFormatted
+			added = true
+		}
+	}
+
+	// Jika tanggapan berhasil ditambahkan, salin kembali ke forum
+	if added {
+		forum[urutan-1].Tanggapan = tanggapanArray[:len(forum[urutan-1].Tanggapan)+1]
+		fmt.Println("Tanggapan berhasil ditambahkan!")
+	} else {
+		fmt.Println("Gagal menambahkan tanggapan.")
+	}
 }
 
 func cariPertanyaan() {
@@ -324,6 +346,19 @@ func cariPertanyaanBinary(tag string) {
 	}
 }
 
+func insertionSortTag() {
+	for i := 1; i < forumCount; i++ {
+		pertanyaan := forum[i]
+		j := i - 1
+		// Urutkan berdasarkan tag pertama (Anda bisa menyesuaikan logika untuk lebih dari satu tag jika diperlukan)
+		for j >= 0 && strings.Compare(forum[j].Tag[0], pertanyaan.Tag[0]) > 0 {
+			forum[j+1] = forum[j]
+			j--
+		}
+		forum[j+1] = pertanyaan
+	}
+}
+
 func selectionSortTagDescending() {
 	for i := 0; i < forumCount-1; i++ {
 		maxIdx := i
@@ -340,19 +375,6 @@ func selectionSortTagDescending() {
 	}
 }
 
-func insertionSortTag() {
-	for i := 1; i < forumCount; i++ {
-		pertanyaan := forum[i]
-		j := i - 1
-		// Urutkan berdasarkan tag pertama (Anda bisa menyesuaikan logika untuk lebih dari satu tag jika diperlukan)
-		for j >= 0 && strings.Compare(forum[j].Tag[0], pertanyaan.Tag[0]) > 0 {
-			forum[j+1] = forum[j]
-			j--
-		}
-		forum[j+1] = pertanyaan
-	}
-}
-
 func initDummyData() {
 	// Data dummy pengguna
 	users[userCount] = User{Username: "pasien1", Password: "password1", Role: "pasien"}
@@ -365,7 +387,7 @@ func initDummyData() {
 		ID:      forumCount + 1,
 		Penanya: "pasien1",
 		Isi:     "Bagaimana cara mengobati sakit kepala tanpa obat?",
-		Tag:     []string{"sakit kepala", "obat"},
+		Tag:     []string{"sakit", "kepala"},
 	}
 	forumCount++
 
