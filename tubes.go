@@ -333,7 +333,7 @@ func cariPertanyaanBinary(tag string) {
 			fmt.Printf("ID: %d | Penanya: %s\nPertanyaan: %s\nTag: %s\n",
 				forum[mid].ID, forum[mid].Penanya, forum[mid].Isi, strings.Join(forum[mid].Tag, ", "))
 			found = true
-			break
+			high = low - 1
 		} else if forumTag < searchTag {
 			low = mid + 1
 		} else {
